@@ -9,12 +9,13 @@ module.change_code = 1;
 // load configuration parameters
 var config = require("./config.json");
 var strings = require("./constants.json");
+var channels = require("./channels.json");
 
 // load settings from config file
 var route = config.route || "tivo_control";
 
 // set video and audio provider order
-var video_provider_order = [strings.netflix, strings.amazon, strings.hbogo, strings.hulu, strings.youtube, strings.mlbtv, strings.plex, strings.vudu, strings.hsn, strings.alt, strings.flixfling, strings.toongoggles, strings.wwe, strings.yahoo, strings.yupptv];
+var video_provider_order = [strings.netflix, strings.amazon, strings.hbogo, strings.xfinityondemand, strings.hulu, strings.youtube, strings.mlbtv, strings.plex, strings.vudu, strings.hsn, strings.alt, strings.flixfling, strings.toongoggles, strings.wwe, strings.yahoo, strings.yupptv];
 var audio_provider_order = [strings.iheartradio, strings.pandora, strings.plex_m, strings.spotify, strings.vevo];
 
 // define variables
@@ -292,6 +293,26 @@ app.intent('ChangeChannel',
 	return sendCommands(commands, true);
     });
 
+app.intent('PutOn',
+    {
+        "slots":{"CHANNELNAME":"AMAZON.TelevisionChannel"},
+        "utterances":[ "put {on|} {-|CHANNELNAME}" ]
+    },
+    function(request,response) {
+	var commands = [];
+	var chnl = String(request.slot("CHANNELNAME"));
+	chnl = chnl.toLowerCase();
+        if(tivoMini) {
+            for(pos = 0 ; pos < channels[chnl].length ; pos++) 
+	        commands.push("NUM"+channels[chnl].substring(pos,pos+1));
+            commands.push("ENTER");
+        }
+        else {
+	    commands.push("SETCH "+channels[chnl]);
+        }
+	return sendCommands(commands, true);
+    });
+
 app.intent('ForceChannel',
     {
         "slots":{"TIVOCHANNEL":"NUMBER"},
@@ -329,6 +350,17 @@ app.intent('Play',
     function(request,response) {
         var commands = [];
         commands.push("PLAY");
+        sendCommands(commands);
+    });
+
+app.intent('Info',
+    {
+        "slots":{},
+        "utterances":[ "{for|} info" ]
+    },
+    function(request,response) {
+        var commands = [];
+        commands.push("INFO");
         sendCommands(commands);
     });
 
@@ -507,7 +539,7 @@ app.intent('SendCommand',
 app.intent('HBOGo',
     {
         "slots":{},
-        "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} hbo {go|}" ]
+        "utterances":[ "{go to|open|turn on|open up|display|jump to|launch} hbo go" ]
     },
     function(request,response) {
         if (checkProviderEnabled(strings.hbogo)) {
@@ -520,6 +552,24 @@ app.intent('HBOGo',
         }
         else
             response.say(strings.hbogo + strings.txt_notenabled);
+    });
+
+app.intent('Xfinity',
+    {
+        "slots":{},
+        "utterances":[ "{go to|open|turn on|open up|display|jump to|launch} {xfinity|on demand} {on demand|}" ]
+    },
+    function(request,response) {
+        if (checkProviderEnabled(strings.xfinityondemand)) {
+            response.say("Launching " + strings.xfinityondemand);
+            var commands = [];
+            commands = addInitCommands(commands);
+            commands = openMediaCommands(commands);
+            commands = buildProviderNavigation(strings.xfinityondemand, commands);
+            sendCommands(commands);
+        }
+        else
+            response.say(strings.xfinityondemand + strings.txt_notenabled);
     });
 
 app.intent('Amazon',
