@@ -31,6 +31,9 @@ var video_provider_status;
 var audio_provider_status;
 var tivoIndex = 0;
 var totalTiVos = Object.keys(config.tivos).length;
+var lastTivoBox = tivoIndex;
+var channelName = "";
+var tivoboxrm = "";
 
 // set default TiVo (first one in config file)
 updateCurrentTiVoConfig(tivoIndex);
@@ -102,6 +105,17 @@ app.intent('ListEnabledProviders',
         response.card("Providers", strings.txt_providercard + currentTiVoBox + strings.txt_providercard2 + cardList + strings.txt_providerfooter);
     });
 
+app.intent('ListChannels',
+    {
+        "slots":{},
+        "utterances":[ "{for|to} {my channels|my channel list|list my channels|channel|list channels|channel list|list channel names}" ]
+    },
+    function(request,response) {
+        console.log("List of named channels requested, adding card.");
+        createChannelList();
+        response.say(strings.txt_channelscard + speechList + strings.txt_enabledcard);
+        response.card("Channels", strings.txt_channelscard + cardList + strings.txt_channelsfooter);
+    });
 // BOX SELECTION
 
 app.intent('ChangeTiVoBox',
@@ -277,11 +291,15 @@ app.intent('WhatToWatch',
 
 app.intent('ChangeChannel',
     {
-        "slots":{"TIVOCHANNEL":"NUMBER"},
-        "utterances":[ "{change|go to} channel {1-100|TIVOCHANNEL}" ]
+        "slots":{"TIVOCHANNEL":"NUMBER","TIVOBOXRM":"AMAZON.Room"},
+        "utterances":[ "{change|go to} channel {to|} {1-100|TIVOCHANNEL} {in +TIVOBOXRM+|on +TIVOBOXRM+|}" ]
     },
     function(request,response) {
 	var commands = [];
+	lastTivoBox = tivoIndex;
+	tivoboxrm = request.slot("TIVOBOXRM");
+	
+	setTivoRoom(tivoboxrm);
         if(tivoMini) {
             for(pos = 0 ; pos < request.slot("TIVOCHANNEL").length ; pos++) 
 	        commands.push("NUM"+request.slot("TIVOCHANNEL").substring(pos,pos+1));
@@ -295,31 +313,50 @@ app.intent('ChangeChannel',
 
 app.intent('PutOn',
     {
-        "slots":{"CHANNELNAME":"AMAZON.TelevisionChannel"},
-        "utterances":[ "put {on|} {-|CHANNELNAME}" ]
+        "slots":{"CHANNELNAME":"AMAZON.TelevisionChannel","TIVOBOXRM":"AMAZON.Room"},
+		"utterances":[ "put {on|} {-|CHANNELNAME} {in +TIVOBOXRM+|on +TIVOBOXRM+|}" ]
     },
     function(request,response) {
 	var commands = [];
 	var chnl = String(request.slot("CHANNELNAME"));
 	chnl = chnl.toLowerCase();
-        if(tivoMini) {
-            for(pos = 0 ; pos < channels[chnl].length ; pos++) 
-	        commands.push("NUM"+channels[chnl].substring(pos,pos+1));
-            commands.push("ENTER");
-        }
-        else {
-	    commands.push("SETCH "+channels[chnl]);
-        }
-	return sendCommands(commands, true);
-    });
-
+	var chnlnum = String(channels[chnl]);
+	console.log("Requested to put on channel: " + chnlnum);
+    lastTivoBox = tivoIndex;
+	tivoboxrm = request.slot("TIVOBOXRM");
+	
+	setTivoRoom(tivoboxrm);
+	
+	if (typeof channels[chnl] != 'undefined' ) {
+		if(tivoMini) {
+			for(pos = 0; pos < chnlnum.length; pos++){
+				commands.push("NUM" + chnlnum.substring(pos,pos+1));
+				commands.push("ENTER");
+			}
+		}
+		else {
+			commands.push("SETCH " + chnlnum);
+		}
+		return sendCommands(commands, true);
+	}
+	else {
+		console.log("Undefined channel: " + chnl);
+		response.say(strings.txt_undefinedchannel + chnl + strings.txt_undefinedchannel2);
+	}
+});
+	
 app.intent('ForceChannel',
     {
-        "slots":{"TIVOCHANNEL":"NUMBER"},
-        "utterances":[ "force channel {1-100|TIVOCHANNEL}" ]
+        "slots":{"TIVOCHANNEL":"NUMBER","TIVOBOXRM":"AMAZON.Room"},
+        "utterances":[ "force channel {to|} {1-100|TIVOCHANNEL} {in +TIVOBOXRM+|on +TIVOBOXRM+|}" ]
     },
     function(request,response) {
 	var commands = [];
+	lastTivoBox = tivoIndex;
+	tivoboxrm = request.slot("TIVOBOXRM");
+	
+	setTivoRoom(tivoboxrm);
+	
         if(tivoMini) {
             for(pos = 0 ; pos < request.slot("TIVOCHANNEL").length ; pos++) 
 	        commands.push("NUM"+request.slot("TIVOCHANNEL").substring(pos,pos+1));
@@ -329,6 +366,17 @@ app.intent('ForceChannel',
 	    commands.push("FORCECH "+request.slot("TIVOCHANNEL"));
         }
 	return sendCommands(commands, true);
+    });
+
+app.intent('LastChannel',
+    {
+        "slots":{},
+        "utterances":[ "{for|} {last|previous} {channel|}" ]
+    },
+    function(request,response) {
+        var commands = [];
+        commands.push("ENTER");
+        sendCommands(commands);
     });
 
 app.intent('Pause',
@@ -518,6 +566,30 @@ app.intent('QuickMode',
         commands.push("PLAY");
         commands.push("SELECT");
         commands.push("CLEAR");
+        sendCommands(commands);
+    });
+	
+app.intent('ThumbsUp',
+    {
+
+        "slots":{},
+        "utterances":[ "thumbs up" ]
+    },
+    function(request,response) {
+        var commands = [];
+        commands.push("THUMBSUP");
+        sendCommands(commands);
+    });
+
+app.intent('ThumbsDown',
+    {
+
+        "slots":{},
+        "utterances":[ "thumbs down" ]
+    },
+    function(request,response) {
+        var commands = [];
+        commands.push("THUMBSDOWN");
         sendCommands(commands);
     });
 
@@ -926,29 +998,36 @@ function sendNextCommand () {
         if(typeof telnetSocket != "undefined" && typeof telnetSocket.end != "undefined") {
             telnetSocket.end();
             telnetSocket.destroy();
+			console.log("Connection Closed");
+			if(lastTivoBox != tivoIndex) {
+				setLastTivo();
+			}
         }
         socketOpen = false;
     }
     else {
         var command = queuedCommands.shift();
         var timeToWait = 300;
-        if(queuedCommands[0] == "RIGHT" || queuedCommands[0] == "ENTER")
+        if(queuedCommands[0] == "RIGHT" || queuedCommands[0] == "ENTER") {
 	    // wait slightly longer to allow for screen changes
-            if(tivoMini)
+            if(tivoMini) {
                 timeToWait = 1100;
-            else
+            } else {
                 timeToWait = 800;
+			}
+		}
         if(typeof command == "object" && typeof command["explicit"] != "undefined") {
     	    // when explicit is true, send the full command as passed
             console.log("Sending Explicit Command: " + command["command"].toUpperCase());
             telnetSocket.write(command["command"].toUpperCase() + "\r");
-            if(command.indexOf("TELEPORT"))
+            if(command.indexOf("TELEPORT")) {
                 timeToWait = 700;
-        }
-        else {
+			}
+        } else {
     	    // when explicit is false, add the proper command prefix (IRCODE, KEYBOARD, etc.)
-            if(typeof command == "object")
+            if(typeof command == "object") {
                 command = command["command"];
+			}
             var prefix = determinePrefix(command);
             if(prefix === false) {
                 console.log("ERROR: Command Not Supported: " + command);
@@ -958,8 +1037,9 @@ function sendNextCommand () {
                 console.log("Sending Prefixed Command: "+prefix + " " + command.toUpperCase());
                 telnetSocket.write(prefix + " " + command.toUpperCase() + "\r");
             }
-            if(prefix == "TELEPORT")
+            if(prefix == "TELEPORT") {
                 timeToWait = 700;
+			}
         }
         setTimeout(sendNextCommand, timeToWait);
     }
@@ -995,16 +1075,17 @@ function sendCommands(commands) {
         if(noResponse) {
             noResponse = false;
             console.log("RECEIVED: "+data.toString());
-            interval = setInterval(sendNextCommand, 300);
+			interval = setInterval(sendNextCommand, 300);
         }
     });
 
     // timeout; send next command if the connection is still open
     telnetSocket.on('timeout', function(data) {
         console.log("TIMEOUT RECEIVED");
-        if(socketOpen)
-            sendNextCommand();
-    });
+        if(socketOpen) {
+			sendNextCommand();
+		}
+	});
 
     // connection has been closed
     telnetSocket.on('end', function(data) {
@@ -1021,16 +1102,17 @@ function sendCommands(commands) {
 
 // determine prefix for a command
 function determinePrefix(command) {
-    if(TELEPORT_COMMANDS.indexOf(command) != -1)
+    if(TELEPORT_COMMANDS.indexOf(command) != -1) {
         return "TELEPORT";
-    else if(IRCODE_COMMANDS.indexOf(command) != -1)
+    } else if(IRCODE_COMMANDS.indexOf(command) != -1) {
         return "IRCODE";
-    else if(KEYBOARD_COMMANDS.indexOf(command) != -1)
+    } else if(KEYBOARD_COMMANDS.indexOf(command) != -1) {
         return "KEYBOARD";
-    else if ((command.substring(0,5) == "SETCH") || (command.substring(0,7) == "FORCECH"))
+    } else if ((command.substring(0,5) == "SETCH") || (command.substring(0,7) == "FORCECH")) {
 	return "";
-    else
+    } else {
         return false;
+	}
 }
 
 // reset to known location (i.e., TiVo Central)
@@ -1162,15 +1244,44 @@ function createTiVoBoxList() {
         speechList = speechList + ", " + config.tivos[i].name;
         cardList = cardList + "\n- " + config.tivos[i].name;
         // indicate default TiVo box
-        if (i == 0) 
+        if (i == 0) {
             cardList = cardList + " (default)";
+		}
         // indicate current TiVo box
-        if (i == tivoIndex)
+        if (i == tivoIndex) {
             cardList = cardList + " [current]";
+		}
     }
 
     console.log("speech list:\n " + speechList + "\ncard list: " + cardList);
 
+}
+
+function setTivoRoom(tivoboxrm) {
+	if(tivoboxrm != undefined) { 
+		console.log("Last Tivo box index: " + tivoIndex);
+		currentTiVoBox = tivoboxrm;
+		console.log("Control requested for '" + currentTiVoBox + "' TiVo.");
+		
+		// confirm selected TiVo exists in config.json
+		tivoIndex = findTiVoBoxConfig(currentTiVoBox);
+
+		if (tivoIndex < 0) {
+			// the requested TiVo doesn't exist in the config file
+			console.log("Undefined TiVo requested. Switching back to default.");
+			response.say(strings.txt_undefinedtivo);
+			tivoIndex = 0;
+		}
+		else {
+			updateCurrentTiVoConfig(tivoIndex);
+		}
+	}
+}
+
+function setLastTivo() {
+	console.log("Setting last Tivo");
+	tivoIndex = lastTivoBox;
+	updateCurrentTiVoConfig(tivoIndex);
 }
 
 // find the index of the requested TiVo in the config file
@@ -1203,6 +1314,25 @@ function updateCurrentTiVoConfig(tivoIndex) {
     audio_provider_status = [config.tivos[tivoIndex].iheartradio, config.tivos[tivoIndex].pandora, config.tivos[tivoIndex].plex_m, config.tivos[tivoIndex].spotify, config.tivos[tivoIndex].vevo];
 
     console.log("Now controlling: " + currentTiVoBox + " (" + currentTiVoIP + ").");
+
+}
+
+// generate a list of channels defined in channels.json (for changing by channel name)
+function createChannelList() {
+
+    speechList = "";
+    cardList = "";
+    channelName = "";
+
+    console.log("building list of defined channels");
+    for (channelName in channels) {
+        console.log(channelName + " (" + channels[channelName] + ")");
+        speechList = speechList + ", " + channelName;
+        // uppercase the channel names for a consistent look on the card, and include channel number
+        cardList = cardList + "\n- " + channelName.toUpperCase() + " (" + channels[channelName] + ")";
+    }
+
+    console.log("speech list:\n " + speechList + "\ncard list: " + cardList);
 
 }
 
