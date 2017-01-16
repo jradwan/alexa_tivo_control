@@ -10,6 +10,7 @@ module.change_code = 1;
 var config = require("./config.json");
 var strings = require("./constants.json");
 var channels = require("./channels.json");
+var chnllist = require("./chnllist.json");
 
 // load settings from config file
 var route = config.route || "tivo_control";
@@ -34,6 +35,7 @@ var totalTiVos = Object.keys(config.tivos).length;
 var lastTivoBox = tivoIndex;
 var channelName = "";
 var tivoboxrm = "";
+var genres = "all, entertainment, family, kids, lifestyle, locals, movies, music, news, religion, shopping, spanish, sports";
 
 // set default TiVo (first one in config file)
 updateCurrentTiVoConfig(tivoIndex);
@@ -75,9 +77,6 @@ var KEYBOARD_COMMANDS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", 
 
 var TELEPORT_COMMANDS = ["TIVO", "GUIDE", "NOWPLAYING"];
 
-app.dictionary = {"commands":["UP", "DOWN", "LEFT", "RIGHT", "SELECT", "TIVO", "THUMBSUP", "THUMBSDOWN", "CHANNELUP", "CHANNELDOWN", "MUTE", "VOLUMEDOWN", "VOLUMEUP", "TVINPUT", "OPTIONS", "RECORD", "DISPLAY", "DIRECTV", "ENTER", "CLEAR", "PLAY", "PAUSE", "SLOW", "FORWARD", "REVERSE", "STANDBY", "NOWSHOWING", "REPLAY", "ADVANCE", "DELIMITER", "GUIDE", "KBDUP", "KBDDOWN", "KBDLEFT", "KBDRIGHT", "PAGEUP", "PAGEDOWN", "HOME", "END", "SPACE", "BACKQUOTE", "SLASH", "PERIOD", "COMMA", "QUOTE", "SEMICOLON", "BACKSLASH", "RBRACKET", "LBRACKET", "EQUALS", "MINUS", "CAPS", "LSHIFT", "RSHIFT", "INSERT", "BACKSPACE", "DELETE", "KBDENTER", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]};
-
-
 // intents -------------------------------------------------------------
 
 // HELP
@@ -107,15 +106,36 @@ app.intent('ListEnabledProviders',
 
 app.intent('ListChannels',
     {
-        "slots":{},
-        "utterances":[ "{for|to} {my channels|my channel list|list my channels|channel|list channels|channel list|list channel names}" ]
+        "slots":{"GENRE":"AMAZON.Genre"},
+        "utterances":[ "{for|to} {my channels|my channel list|list my channels|list channels|channel list|list channel names} {for +GENRE+|by +GENRE+|}" ]
     },
     function(request,response) {
+		var genre = String(request.slot("GENRE"));
         console.log("List of named channels requested, adding card.");
-        createChannelList();
+		if ( genre == 'undefined' ) {
+			genre = "all";
+			createChannelList(genre);
+		} else {
+			createChannelList(genre);
+		}
         response.say(strings.txt_channelscard + speechList + strings.txt_enabledcard);
-        response.card("Channels", strings.txt_channelscard + cardList + strings.txt_channelsfooter);
+		response.card("Channels  (" + genre + ")", strings.txt_channelscard + cardList + strings.txt_channelsfooter);
     });
+	
+	app.intent('ListGenres',
+    {
+        "slots":{},
+        "utterances":[ "{for|to} {my genres|my channel genres|list my genres|list genres|genres list}" ]
+    },
+    function(request,response) {
+		genres = genres.toUpperCase();
+        console.log("List of channel genres requested, adding card.");
+        response.say("Your channel genres are ." + genres + strings.txt_enabledcard);
+		genres = genres.replace(/\,\ /g, "\n-");
+		console.log("List of genres:\n-" + genres);
+		response.card("Channel Genres", "\n-" + genres);
+    });
+	
 // BOX SELECTION
 
 app.intent('ChangeTiVoBox',
@@ -227,13 +247,47 @@ app.intent('WishLists',
 
 app.intent('Search',
     {
-        "slots":{},
-        "utterances":[ "{go to|open|open up|display|launch|show|} search", "search" ]
+        "slots":{"TIVOSEARCHREQ":"TIVOTYPEREQ_SLOT"},
+        "utterances":[ "{go to|to|open|open up|display|launch|show|} {search|find} {for +TIVOSEARCHREQ+|+TIVOSEARCHREQ+|}" ]
     },
     function(request,response) {
         var commands = [];
+		var TIVOSEARCHREQ = String(request.slot("TIVOSEARCHREQ"));
+		var j = 0;
+		TIVOSEARCHREQ = TIVOSEARCHREQ.toUpperCase();
+		console.log(TIVOSEARCHREQ);
         commands.push("TIVO");
         commands.push("NUM4");
+		for ( i = 0; i < TIVOSEARCHREQ.length; i++) {
+			j = i + 1;
+			if ( TIVOSEARCHREQ.substring(i, j) == " ") {
+				commands.push("SPACE");
+			} else {
+				commands.push(TIVOSEARCHREQ.substring(i, j));
+			}
+		}
+        sendCommands(commands);
+    });
+
+app.intent('Type',
+    {
+        "slots":{"TIVOTYPEREQ":"TIVOTYPEREQ_SLOT"},
+        "utterances":[ "{to|} type {-|TIVOTYPEREQ}" ]
+    },
+    function(request,response) {
+        var commands = [];
+		var TIVOTYPEREQ = String(request.slot("TIVOTYPEREQ"));
+		var j = 0;
+		TIVOTYPEREQ = TIVOTYPEREQ.toUpperCase();
+		console.log(TIVOTYPEREQ);
+		for ( i = 0; i < TIVOTYPEREQ.length; i++) {
+			j = i + 1;
+			if ( TIVOTYPEREQ.substring(i, j) == " ") {
+				commands.push("SPACE");
+			} else {
+				commands.push(TIVOTYPEREQ.substring(i, j));
+			}
+		}
         sendCommands(commands);
     });
 
@@ -597,8 +651,8 @@ app.intent('ThumbsDown',
 
 app.intent('SendCommand',
     {
-        "slots":{"TIVOCOMMAND":"LITERAL"},
-        "utterances":[ "send {the|} {command|} {commands|TIVOCOMMAND}" ]
+		"slots":{"TIVOCOMMAND":"TIVOCOMMAND_SLOT"},
+		"utterances":[ "send {the command|command} {-|TIVOCOMMAND}", "send {the|} {-|TIVOCOMMAND} {command}", "send {-|TIVOCOMMAND}" ]
     },
     function(request,response) {
         var commands = [];
@@ -1318,20 +1372,27 @@ function updateCurrentTiVoConfig(tivoIndex) {
 }
 
 // generate a list of channels defined in channels.json (for changing by channel name)
-function createChannelList() {
+function createChannelList(genre) {
 
     speechList = "";
     cardList = "";
     channelName = "";
 
     console.log("building list of defined channels");
-    for (channelName in channels) {
-        console.log(channelName + " (" + channels[channelName] + ")");
-        speechList = speechList + ", " + channelName;
-        // uppercase the channel names for a consistent look on the card, and include channel number
-        cardList = cardList + "\n- " + channelName.toUpperCase() + " (" + channels[channelName] + ")";
+	console.log("Genre: " + genre );
+    for (channelName in chnllist) {
+		if ( chnllist[channelName].genre == genre ) {
+			console.log(chnllist[channelName].name + " (" + chnllist[channelName].channel + ")");
+			speechList = speechList + ", " + chnllist[channelName].pronounce;
+			// uppercase the channel names for a consistent look on the card, and include channel number
+			cardList = cardList + "\n- " + chnllist[channelName].name.toUpperCase() + " (" + chnllist[channelName].channel + ")";
+		} else if (genre == "all") {
+			console.log(chnllist[channelName].name + " (" + chnllist[channelName].channel + ")");
+			speechList = speechList + ", " + chnllist[channelName].pronounce;
+			// uppercase the channel names for a consistent look on the card, and include channel number
+			cardList = cardList + "\n- " + chnllist[channelName].name.toUpperCase() + " (" + chnllist[channelName].channel + ")";
+		}
     }
-
     console.log("speech list:\n " + speechList + "\ncard list: " + cardList);
 
 }
