@@ -35,7 +35,7 @@ var totalTiVos = Object.keys(config.tivos).length;
 var lastTivoBox = tivoIndex;
 var channelName = "";
 var tivoboxrm = "";
-var genres = "all, entertainment, family, kids, lifestyle, locals, movies, music, news, religion, shopping, spanish, sports";
+var genres = "all, entertainment, family, kidz, lifestyle, locals, movies, music, news, religion, shopping, spanish, sports";
 
 // set default TiVo (first one in config file)
 updateCurrentTiVoConfig(tivoIndex);
@@ -111,15 +111,24 @@ app.intent('ListChannels',
     },
     function(request,response) {
 		var genre = String(request.slot("GENRE"));
+		genre = genre.toLowerCase();
         console.log("List of named channels requested, adding card.");
 		if ( genre == 'undefined' ) {
 			genre = "all";
 			createChannelList(genre);
+		} else if ( genres.indexOf(genre) < 0 ) {
+			console.log("Genre selected: " + genre);
+			response.say("Selected genre not found. Genres available are ." + genres + strings.txt_enabledcard);
+			genres = genres.toUpperCase();
+			genres = genres.replace(/\,\ /g, "\n-");
+			console.log("List of genres:\n-" + genres);
+			response.card("Channel Genres", "\n-" + genres);
+			return
 		} else {
 			createChannelList(genre);
 		}
-        response.say(strings.txt_channelscard + speechList + strings.txt_enabledcard);
-		response.card("Channels  (" + genre + ")", strings.txt_channelscard + cardList + strings.txt_channelsfooter);
+        response.say(strings.txt_channelscard + genre + "." + speechList + strings.txt_enabledcard);
+		response.card("Channels  (" + genre + ")", strings.txt_channelscard + genre + "." + cardList + strings.txt_channelsfooter);
     });
 	
 	app.intent('ListGenres',
@@ -1377,16 +1386,26 @@ function createChannelList(genre) {
     speechList = "";
     cardList = "";
     channelName = "";
+	var linecount = 0;
 
     console.log("building list of defined channels");
 	console.log("Genre: " + genre );
     for (channelName in chnllist) {
+		if (linecount == 97 ) {
+			console.log("Channel list is too long.");
+			speechList = speechList + ", " + "Channel list exceeds card maximum length. Try listing channels by genre.";
+			cardList = cardList + "\n\n\nChannel list exceeds card maximum length. Try listing channels by genre...";
+			return
+		}
+		
 		if ( chnllist[channelName].genre == genre ) {
+			linecount++;
 			console.log(chnllist[channelName].name + " (" + chnllist[channelName].channel + ")");
 			speechList = speechList + ", " + chnllist[channelName].pronounce;
 			// uppercase the channel names for a consistent look on the card, and include channel number
 			cardList = cardList + "\n- " + chnllist[channelName].name.toUpperCase() + " (" + chnllist[channelName].channel + ")";
-		} else if (genre == "all") {
+		} else if ( genres.indexOf(genre) < 0 | genre == "all" ) {
+			linecount++;
 			console.log(chnllist[channelName].name + " (" + chnllist[channelName].channel + ")");
 			speechList = speechList + ", " + chnllist[channelName].pronounce;
 			// uppercase the channel names for a consistent look on the card, and include channel number

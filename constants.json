@@ -40,7 +40,7 @@
   "txt_onetivo": "Sorry, only one TiVo box is set up for TiVo Control in your configuration file, so I can't switch to that box.",
   "txt_undefinedchannel": "Sorry, I couldn't find a channel named ",
   "txt_undefinedchannel2": " in your TiVo Control channel mapping file.",
-  "txt_channelscard": "Here's a list of channels you can put on by name.",
+  "txt_channelscard": "Here's a list of channels you can put on by name. The channels are sorted by ",
   "txt_channelsfooter": "\n\nYou must update your channels.json file in the TiVo Control directory with any channel names (and their corresponding numbers) that you want to be able to switch to by name.",
 
   "alexaTestAppId": "amzn1.echo-sdk-ams.app.000000-d0ed-0000-ad00-000000d00ebe"
