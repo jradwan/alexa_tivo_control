@@ -1118,33 +1118,35 @@ function sendNextCommand () {
                 timeToWait = 800;
 			}
 		}
-	}
-	if(typeof command == "object" && typeof command["explicit"] != "undefined") {
-		// when explicit is true, send the full command as passed
-		console.log("Sending Explicit Command: " + command["command"].toUpperCase());
-		telnetSocket.write(command["command"].toUpperCase() + "\r");
-		if(command.indexOf("TELEPORT")) {
-			timeToWait = 700;
+	
+		if(typeof command == "object" && typeof command["explicit"] != "undefined") {
+			// when explicit is true, send the full command as passed
+			console.log("Sending Explicit Command: " + command["command"].toUpperCase());
+			telnetSocket.write(command["command"].toUpperCase() + "\r");
+			if(command.indexOf("TELEPORT")) {
+				timeToWait = 700;
+			}
 		} else {
 			// when explicit is false, add the proper command prefix (IRCODE, KEYBOARD, etc.)
 			if(typeof command == "object") {
 				command = command["command"];
 			}
+		
+			var prefix = determinePrefix(command);
+			if(prefix === false) {
+				console.log("ERROR: Command Not Supported: " + command);
+				telnetSocket.end();
+			}
+			else {
+				console.log("Sending Prefixed Command: "+prefix + " " + command.toUpperCase());
+				telnetSocket.write(prefix + " " + command.toUpperCase() + "\r");
+			}
+			if(prefix == "TELEPORT") {
+				timeToWait = 700;
+			}
 		}
-		var prefix = determinePrefix(command);
-		if(prefix === false) {
-			console.log("ERROR: Command Not Supported: " + command);
-			telnetSocket.end();
-		}
-		else {
-			console.log("Sending Prefixed Command: "+prefix + " " + command.toUpperCase());
-			telnetSocket.write(prefix + " " + command.toUpperCase() + "\r");
-		}
-		if(prefix == "TELEPORT") {
-			timeToWait = 700;
-		}
+		setTimeout(sendNextCommand, timeToWait);
 	}
-	setTimeout(sendNextCommand, timeToWait);
 }
 
 // send a series of queued-up commands to the TiVo (with delays in-between)
