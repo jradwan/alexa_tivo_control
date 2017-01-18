@@ -21,13 +21,17 @@ TRICKPLAY
 ... record this show
 
 CHANGING CHANNELS
-... change/go to channel <channel number>
-... force channel <channel number> (cancels recording if necessary)
+... change/go to channel <channel number> (on/in <box name>)
+... force channel <channel number> (on/in <box name>) (cancels recording if necessary)
 <channel number> must be a channel enabled in your Channel List
-... put on <channel name>
+... put on <channel name> (on/in <box name>)
 <channel name> must be mapped to the proper channel number in your TiVo Control configuration (see channels.json)
 ... last/previous channel
-... list my channels (also adds a card to your Alexa app listing your named channels)
+... list my channels (by <genre>) (also adds a card to your Alexa app listing your named channels)
+<genre> must be mapped to the proper channel number in your TiVo Control configuration (see chnlist.json)
+... list genres
+genres are configured in genres variable in apps.js
+
 
 FEATURES
 ... turn on/off captions
@@ -42,8 +46,8 @@ PLACES
 ... go to/show my OnePasses
 ... go to/show my WishLists
 ... go to/show my To Do List
-... search
-... browse
+... search <phrase>
+<phrase> can be one to five words for TiVo to search by
 ... go to/show my history
 ... what to watch
 
@@ -57,6 +61,8 @@ BOX SELECTION
 ... list boxes (also adds a card to your Alexa app listing your configured TiVo Boxes)
 
 ADVANCED
+... type <phrase>
+<phrase> can be one to five words for TiVo to type into text field
 ... send the <command> command
 
 <command> can be any command defined in the TiVo TCP Remote Protocol. For example:
