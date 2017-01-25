@@ -274,7 +274,7 @@ app.intent('WishLists',
 
 app.intent('Search',
     {
-        "slots":{"TIVOSEARCHREQMOVIE":"AMAZON.Movies","TIVOSEARCHREQTVSERIES":"AMAZON.TVSeries"},
+        "slots":{"TIVOSEARCHREQMOVIE":"AMAZON.Movie","TIVOSEARCHREQTVSERIES":"AMAZON.TVSeries"},
         "utterances":[ "{go to|to|open|open up|display|launch|show|} {search|find} {for +TIVOSEARCHREQMOVIE+|+TIVOSEARCHREQMOVIE+|for +TIVOSEARCHREQTVSERIES+|+TIVOSEARCHREQTVSERIES+|}" ]
     },
     function(request,response) {
@@ -313,7 +313,7 @@ app.intent('Search',
 
 app.intent('Type',
     {
-        "slots":{"TIVOTYPEREQMOVIE":"AMAZON.Movies","TIVOTYPEREQTVSERIES":"AMAZON.TVSeries"},
+        "slots":{"TIVOTYPEREQMOVIE":"AMAZON.Movie","TIVOTYPEREQTVSERIES":"AMAZON.TVSeries"},
         "utterances":[ "{to|} type {+TIVOTYPEREQMOVIE+|+TIVOTYPEREQTVSERIES+}" ]
     },
     function(request,response) {
