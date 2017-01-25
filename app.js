@@ -35,7 +35,7 @@ var totalTiVos = Object.keys(config.tivos).length;
 var lastTivoBox = tivoIndex;
 var channelName = ""; 
 var tivoboxrm = "";
-var genres = "all, entertainment, family, kidz, lifestyle, locals, movies, music, news, religion, shopping, spanish, sports";
+var genres = strings["genres"]
 
 // set default TiVo (first one in config file)
 updateCurrentTiVoConfig(tivoIndex);
@@ -274,23 +274,38 @@ app.intent('WishLists',
 
 app.intent('Search',
     {
-        "slots":{"TIVOSEARCHREQ":"TIVOTYPEREQ_SLOT"},
-        "utterances":[ "{go to|to|open|open up|display|launch|show|} {search|find} {for +TIVOSEARCHREQ+|+TIVOSEARCHREQ+|}" ]
+        "slots":{"TIVOSEARCHREQMOVIE":"AMAZON.Movies","TIVOSEARCHREQTVSERIES":"AMAZON.TVSeries"},
+        "utterances":[ "{go to|to|open|open up|display|launch|show|} {search|find} {for +TIVOSEARCHREQMOVIE+|+TIVOSEARCHREQMOVIE+|for +TIVOSEARCHREQTVSERIES+|+TIVOSEARCHREQTVSERIES+|}" ]
     },
     function(request,response) {
         var commands = [];
-		var TIVOSEARCHREQ = String(request.slot("TIVOSEARCHREQ"));
+		var TIVOSEARCHREQMOVIE = String(request.slot("TIVOSEARCHREQMOVIE"));
+		var TIVOSEARCHREQTVSERIES = String(request.slot("TIVOSEARCHREQTVSERIES"));
 		var j = 0;
-		TIVOSEARCHREQ = TIVOSEARCHREQ.toUpperCase();
-		console.log(TIVOSEARCHREQ);
+		TIVOSEARCHREQMOVIE = TIVOSEARCHREQMOVIE.toUpperCase();
+		TIVOSEARCHREQTVSERIES = TIVOSEARCHREQTVSERIES.toUpperCase();
+		console.log(TIVOSEARCHREQMOVIE);
+		console.log(TIVOSEARCHREQTVSERIES);
         commands.push("TIVO");
         commands.push("NUM4");
-		for ( i = 0; i < TIVOSEARCHREQ.length; i++) {
-			j = i + 1;
-			if ( TIVOSEARCHREQ.substring(i, j) == " ") {
-				commands.push("SPACE");
-			} else {
-				commands.push(TIVOSEARCHREQ.substring(i, j));
+		if( TIVOSEARCHREQMOVIE != 'UNDEFINED') {
+			for ( i = 0; i < TIVOSEARCHREQMOVIE.length; i++) {
+				j = i + 1;
+				if ( TIVOSEARCHREQMOVIE.substring(i, j) == " ") {
+					commands.push("SPACE");
+				} else {
+					commands.push(TIVOSEARCHREQMOVIE.substring(i, j));
+				}
+			}
+		}
+		if( TIVOSEARCHREQTVSERIES != 'UNDEFINED') {
+			for ( i = 0; i < TIVOSEARCHREQTVSERIES.length; i++) {
+				j = i + 1;
+				if ( TIVOSEARCHREQTVSERIES.substring(i, j) == " ") {
+					commands.push("SPACE");
+				} else {
+					commands.push(TIVOSEARCHREQTVSERIES.substring(i, j));
+				}
 			}
 		}
         sendCommands(commands);
@@ -298,21 +313,36 @@ app.intent('Search',
 
 app.intent('Type',
     {
-        "slots":{"TIVOTYPEREQ":"TIVOTYPEREQ_SLOT"},
-        "utterances":[ "{to|} type {-|TIVOTYPEREQ}" ]
+        "slots":{"TIVOTYPEREQMOVIE":"AMAZON.Movies","TIVOTYPEREQTVSERIES":"AMAZON.TVSeries"},
+        "utterances":[ "{to|} type {+TIVOTYPEREQMOVIE+|+TIVOTYPEREQTVSERIES+}" ]
     },
     function(request,response) {
         var commands = [];
-		var TIVOTYPEREQ = String(request.slot("TIVOTYPEREQ"));
+		var TIVOTYPEREQMOVIE = String(request.slot("TIVOTYPEREQMOVIE"));
+		var TIVOTYPEREQTVSERIES = String(request.slot("TIVOTYPEREQTVSERIES"));
 		var j = 0;
-		TIVOTYPEREQ = TIVOTYPEREQ.toUpperCase();
-		console.log(TIVOTYPEREQ);
-		for ( i = 0; i < TIVOTYPEREQ.length; i++) {
-			j = i + 1;
-			if ( TIVOTYPEREQ.substring(i, j) == " ") {
-				commands.push("SPACE");
-			} else {
-				commands.push(TIVOTYPEREQ.substring(i, j));
+		TIVOTYPEREQMOVIE = TIVOTYPEREQMOVIE.toUpperCase();
+		TIVOTYPEREQTVSERIES = TIVOTYPEREQTVSERIES.toUpperCase();
+		console.log(TIVOTYPEREQMOVIE);
+		console.log(TIVOTYPEREQTVSERIES);
+		if( TIVOTYPEREQMOVIE != 'UNDEFINED') {
+			for ( i = 0; i < TIVOTYPEREQMOVIE.length; i++) {
+				j = i + 1;
+				if ( TIVOTYPEREQMOVIE.substring(i, j) == " ") {
+					commands.push("SPACE");
+				} else {
+					commands.push(TIVOTYPEREQMOVIE.substring(i, j));
+				}
+			}
+		}
+		if( TIVOTYPEREQTVSERIES != 'UNDEFINED') {
+			for ( i = 0; i < TIVOTYPEREQTVSERIES.length; i++) {
+				j = i + 1;
+				if ( TIVOTYPEREQTVSERIES.substring(i, j) == " ") {
+					commands.push("SPACE");
+				} else {
+					commands.push(TIVOTYPEREQTVSERIES.substring(i, j));
+				}
 			}
 		}
         sendCommands(commands);

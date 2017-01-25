@@ -30,7 +30,7 @@ CHANGING CHANNELS
 ... list my channels (by <genre>) (also adds a card to your Alexa app listing your named channels)
 <genre> must be mapped to the proper channel number in your TiVo Control configuration (see chnlist.json)
 ... list genres
-genres are configured in genres variable in apps.js
+genres are configured in genres object in constants.json
 
 
 FEATURES
@@ -47,7 +47,8 @@ PLACES
 ... go to/show my WishLists
 ... go to/show my To Do List
 ... search <phrase>
-<phrase> can be one to five words for TiVo to search by
+<phrase> can be a movie or television series
+... browse
 ... go to/show my history
 ... what to watch
 
@@ -62,7 +63,7 @@ BOX SELECTION
 
 ADVANCED
 ... type <phrase>
-<phrase> can be one to five words for TiVo to type into text field
+<phrase> can be a movie or television series
 ... send the <command> command
 
 <command> can be any command defined in the TiVo TCP Remote Protocol. For example:
