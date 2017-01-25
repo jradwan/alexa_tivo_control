@@ -289,6 +289,7 @@ app.intent('Search',
         commands.push("TIVO");
         commands.push("NUM4");
 		if( TIVOSEARCHREQMOVIE != 'UNDEFINED') {
+			console.log("Movie Search");
 			for ( i = 0; i < TIVOSEARCHREQMOVIE.length; i++) {
 				j = i + 1;
 				if ( TIVOSEARCHREQMOVIE.substring(i, j) == " ") {
@@ -299,6 +300,7 @@ app.intent('Search',
 			}
 		}
 		if( TIVOSEARCHREQTVSERIES != 'UNDEFINED') {
+			console.log("Television Search");
 			for ( i = 0; i < TIVOSEARCHREQTVSERIES.length; i++) {
 				j = i + 1;
 				if ( TIVOSEARCHREQTVSERIES.substring(i, j) == " ") {
@@ -326,6 +328,7 @@ app.intent('Type',
 		console.log(TIVOTYPEREQMOVIE);
 		console.log(TIVOTYPEREQTVSERIES);
 		if( TIVOTYPEREQMOVIE != 'UNDEFINED') {
+			console.log("Type Movie");
 			for ( i = 0; i < TIVOTYPEREQMOVIE.length; i++) {
 				j = i + 1;
 				if ( TIVOTYPEREQMOVIE.substring(i, j) == " ") {
@@ -336,6 +339,7 @@ app.intent('Type',
 			}
 		}
 		if( TIVOTYPEREQTVSERIES != 'UNDEFINED') {
+			console.log("Type Television");
 			for ( i = 0; i < TIVOTYPEREQTVSERIES.length; i++) {
 				j = i + 1;
 				if ( TIVOTYPEREQTVSERIES.substring(i, j) == " ") {
