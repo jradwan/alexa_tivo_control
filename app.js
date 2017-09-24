@@ -14,9 +14,8 @@ var channels = require("./channels.json");
 // load settings from config file
 var route = config.route || "tivo_control";
 
-// set video and audio provider order
-var video_provider_order = [strings.netflix, strings.amazon, strings.hbogo, strings.huhu, strings.xfinityondemand, strings.youtube, strings.epix, strings.vudu, strings.plex, strings.mlbtv, strings.wwe, strings.ameba, strings.toongoggles, strings.alt, strings.flixfling, strings.hsn, strings.tubi, strings.vevo, strings.yahoo, strings.yupptv, strings.opera];
-var audio_provider_order = [strings.iheartradio, strings.pandora, strings.plex_m, strings.vevo_m];
+// set apps order
+var apps_order = [strings.netflix, strings.amazon, strings.hbogo, strings.hulu, strings.xfinityondemand, strings.youtube, strings.epix, strings.vudu, strings.plex, strings.mlbtv, strings.wwe, strings.ameba, strings.toongoggles, strings.alt, strings.flixfling, strings.hsn, strings.tubi, strings.vevo, strings.yahoo, strings.yupptv, strings.opera, strings.iheartradio, strings.pandora];
 
 // define variables
 var queuedCommands = [];
@@ -24,11 +23,9 @@ var telnetSocket;
 var socketOpen = false;
 var interval;
 var noResponse = true;
-var providerEnabled;
+var apps_status;
 var speechList = "";
 var cardList = "";
-var video_provider_status;
-var audio_provider_status;
 var tivoIndex = 0;
 var totalTiVos = Object.keys(config.tivos).length;
 var lastTivoBox = tivoIndex;
@@ -108,16 +105,16 @@ app.intent('Help',
         response.card("Help", strings.txt_help);
     });
 
-app.intent('ListEnabledProviders',
+app.intent('ListEnabledApps',
     {
         "slots":{},
-        "utterances":[ "{for|to} {my providers|list my providers|provider|list providers|provider list|list enabled providers}" ]
+        "utterances":[ "{for|to} {my apps|list my apps|app|list apps|app list|list enabled apps}" ]
     },
     function(request,response) {
-        console.log("List of enabled providers requested, adding card.");
-        createProviderList();
+        console.log("List of enabled applications requested, adding card.");
+        createAppList();
         response.say(strings.txt_enabledlist + currentTiVoBox + strings.txt_enabledlist2 + speechList + strings.txt_enabledcard);
-        response.card("Providers", strings.txt_providercard + currentTiVoBox + strings.txt_providercard2 + cardList + strings.txt_providerfooter);
+        response.card("Apps", strings.txt_appcard + currentTiVoBox + strings.txt_appcard2 + cardList + strings.txt_appfooter);
     });
 
 app.intent('ListChannels',
@@ -806,7 +803,7 @@ app.intent('ExecuteMacro',
         }
     });
 
-// VIDEO PROVIDERS
+// APPS
 
 app.intent('HBOGo',
     {
@@ -814,12 +811,12 @@ app.intent('HBOGo',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch} hbo go" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.hbogo)) {
+        if (checkAppEnabled(strings.hbogo)) {
             response.say("Launching " + strings.hbogo);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.hbogo, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.hbogo, commands);
             sendCommands(commands);
         }
         else {
@@ -833,12 +830,12 @@ app.intent('Xfinity',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch} {xfinity|on demand} {on demand|}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.xfinityondemand)) {
+        if (checkAppEnabled(strings.xfinityondemand)) {
             response.say("Launching " + strings.xfinityondemand);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.xfinityondemand, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.xfinityondemand, commands);
             sendCommands(commands);
         }
         else {
@@ -852,12 +849,12 @@ app.intent('Amazon',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} amazon {video|}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.amazon)) {
+        if (checkAppEnabled(strings.amazon)) {
             response.say("Launching " + strings.amazon);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.amazon, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.amazon, commands);
             sendCommands(commands);
         }
         else {
@@ -871,12 +868,12 @@ app.intent('Netflix',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} netflix" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.netflix)) {
+        if (checkAppEnabled(strings.netflix)) {
             response.say("Launching " + strings.netflix);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.netflix, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.netflix, commands);
             sendCommands(commands);
         }
         else {
@@ -890,12 +887,12 @@ app.intent('Hulu',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} hulu" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.hulu)) {
+        if (checkAppEnabled(strings.hulu)) {
             response.say("Launching " + strings.hulu);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.hulu, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.hulu, commands);
             sendCommands(commands);
         }
         else {
@@ -909,12 +906,12 @@ app.intent('YouTube',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} youtube" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.youtube)) {
+        if (checkAppEnabled(strings.youtube)) {
             response.say("Launching " + strings.youtube);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.youtube, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.youtube, commands);
             sendCommands(commands);
         }
         else {
@@ -928,12 +925,12 @@ app.intent('MLBTV',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {the|} {mlb|baseball|mlb tv|major league baseball|major league baseball tv}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.mlbtv)) {
+        if (checkAppEnabled(strings.mlbtv)) {
             response.say("Launching " + strings.mlbtv);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.mlbtv, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.mlbtv, commands);
             sendCommands(commands);
         }
         else {
@@ -947,12 +944,12 @@ app.intent('Plex',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} plex" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.plex)) {
+        if (checkAppEnabled(strings.plex)) {
             response.say("Launching " + strings.plex);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.plex, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.plex, commands);
             sendCommands(commands);
         }
         else {
@@ -966,12 +963,12 @@ app.intent('VUDU',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {vudu|voodoo}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.vudu)) {
+        if (checkAppEnabled(strings.vudu)) {
             response.say("Launching " + strings.vudu);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.vudu, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.vudu, commands);
             sendCommands(commands);
         }
         else {
@@ -985,12 +982,12 @@ app.intent('EPIX',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {epics|epix}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.epix)) {
+        if (checkAppEnabled(strings.epix)) {
             response.say("Launching " + strings.epix);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.epix, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.epix, commands);
             sendCommands(commands);
         }
         else {
@@ -1004,12 +1001,12 @@ app.intent('HSN',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {hsn|home shopping network|shopping}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.hsn)) {
+        if (checkAppEnabled(strings.hsn)) {
             response.say("Launching " + strings.hsn);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.hsn, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.hsn, commands);
             sendCommands(commands);
         }
         else {
@@ -1023,12 +1020,12 @@ app.intent('Vevo',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {vevo music|music videos}", "play {music|music on|} vevo music" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.vevo)) {
+        if (checkAppEnabled(strings.vevo)) {
             response.say("Launching " + strings.vevo);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.vevo, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.vevo, commands);
             sendCommands(commands);
         }
         else {
@@ -1042,12 +1039,12 @@ app.intent('ALTChannel',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {alt|alt channel}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.alt)) {
+        if (checkAppEnabled(strings.alt)) {
             response.say("Launching " + strings.alt);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.alt, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.alt, commands);
             sendCommands(commands);
         }
         else {
@@ -1061,12 +1058,12 @@ app.intent('FlixFling',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} flixfling" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.flixfling)) {
+        if (checkAppEnabled(strings.flixfling)) {
             response.say("Launching " + strings.flixfling);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.flixfling, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.flixfling, commands);
             sendCommands(commands);
         }
         else {
@@ -1080,12 +1077,12 @@ app.intent('ToonGoggles',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} toon goggles" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.toongoggles)) {
+        if (checkAppEnabled(strings.toongoggles)) {
             response.say("Launching " + strings.toongoggles);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.toongoggles, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.toongoggles, commands);
             sendCommands(commands);
         }
         else {
@@ -1099,12 +1096,12 @@ app.intent('WWE',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {wwe|wrestling|world wrestling entertainment}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.wwe)) {
+        if (checkAppEnabled(strings.wwe)) {
             response.say("Launching " + strings.wwe);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.wwe, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.wwe, commands);
             sendCommands(commands);
         }
         else {
@@ -1118,12 +1115,12 @@ app.intent('Yahoo',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} yahoo" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.yahoo)) {
+        if (checkAppEnabled(strings.yahoo)) {
             response.say("Launching " + strings.yahoo);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.yahoo, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.yahoo, commands);
             sendCommands(commands);
         }
         else {
@@ -1137,12 +1134,12 @@ app.intent('YuppTV',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {yupp|yupp tv|yupptv}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.yupptv)) {
+        if (checkAppEnabled(strings.yupptv)) {
             response.say("Launching " + strings.yupptv);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.yupptv, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.yupptv, commands);
             sendCommands(commands);
         }
         else {
@@ -1156,12 +1153,12 @@ app.intent('OperaTV',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {opera|opera tv}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.opera)) {
+        if (checkAppEnabled(strings.opera)) {
             response.say("Launching " + strings.opera);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.opera, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.opera, commands);
             sendCommands(commands);
         }
         else {
@@ -1175,12 +1172,12 @@ app.intent('AmebaTV',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {ameba|amoeba|ameba tv|amoeba tv}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.ameba)) {
+        if (checkAppEnabled(strings.ameba)) {
             response.say("Launching " + strings.ameba);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.ameba, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.ameba, commands);
             sendCommands(commands);
         }
         else {
@@ -1194,12 +1191,12 @@ app.intent('TubiTV',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {tubi|too bee|two be|tubi tv|too bee tv|two be tv}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.tubi)) {
+        if (checkAppEnabled(strings.tubi)) {
             response.say("Launching " + strings.tubi);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMediaCommands(commands);
-            commands = buildProviderNavigation(strings.tubi, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.tubi, commands);
             sendCommands(commands);
         }
         else {
@@ -1207,20 +1204,18 @@ app.intent('TubiTV',
         }
     });
 
-// AUDIO PROVIDERS
-
 app.intent('Pandora',
     {
         "slots":{},
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} pandora", "play {music|music on pandora|pandora}" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.pandora)) {
+        if (checkAppEnabled(strings.pandora)) {
             response.say("Launching " + strings.pandora);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMusicCommands(commands);
-            commands = buildProviderNavigation(strings.pandora, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.pandora, commands);
             sendCommands(commands);
         }
         else {
@@ -1234,12 +1229,12 @@ app.intent('iHeartRadio',
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {iheartradio|i heart radio}", "play {music|music on|} iheartradio" ]
     },
     function(request,response) {
-        if (checkProviderEnabled(strings.iheartradio)) {
+        if (checkAppEnabled(strings.iheartradio)) {
             response.say("Launching " + strings.iheartradio);
             var commands = [];
             commands = addInitCommands(commands);
-            commands = openMusicCommands(commands);
-            commands = buildProviderNavigation(strings.iheartradio, commands);
+            commands = openAppsCommands(commands);
+            commands = buildAppNavigation(strings.iheartradio, commands);
             sendCommands(commands);
         }
         else {
@@ -1382,23 +1377,8 @@ function addInitCommands(commands) {
     return commands;
 }
 
-// go to Find TV, Movies, & Videos menu
-function openMediaCommands(commands) {
-    commands.push("DOWN");
-    commands.push("DOWN");
-    if (tivoMini) {
-        commands.push("DOWN");
-    }
-    commands.push("RIGHT");
-    commands.push("DOWN");
-    commands.push("DOWN");
-    return commands;
-}
-
-// go to Music & Photos menu
-function openMusicCommands(commands) {
-    commands.push("DOWN");
-    commands.push("DOWN");
+// go to Apps menu
+function openAppsCommands(commands) {
     commands.push("DOWN");
     commands.push("DOWN");
     if (tivoMini) {
@@ -1408,34 +1388,24 @@ function openMusicCommands(commands) {
     return commands;
 }
 
-// build dynamic navigation based on which video/audio providers are enabled
-function buildProviderNavigation(provider, commands) {
+// build dynamic navigation based on which apps are enabled
+function buildAppNavigation(appID, commands) {
 
-    var provider_loc = video_provider_order.indexOf(provider);
-    var audio_provider = false;
+    var app_loc = apps_order.indexOf(appID);
+    var skipFirst = true;
 
-    if (provider_loc == -1) {
-        audio_provider = true;
-        console.log("building navigation for audio provider (" + provider + ")");
-        provider_loc = audio_provider_order.indexOf(provider);
-        provider_order = audio_provider_order;
-        provider_status = audio_provider_status;
-    }
-    else {
-        console.log("building navigation for video provider (" + provider + ")");
-        provider_order = video_provider_order;
-        provider_status = video_provider_status; 
-    }
+    console.log("building navigation for app (" + appID + ")");
 
-    for (loc = 0; loc <= provider_loc; loc++) {
-        console.log("- " + provider_order[loc] + " (" + provider_status[loc] + ")");
-        if (provider_status[loc] == true) {
-            // for audio providers, skip the first DOWN command since after pressing
-            // RIGHT on the Music menu, the first provider is already highlighted
-            if (audio_provider == true) {
-                audio_provider = false;
-            } else {
+    for (loc = 0; loc <= app_loc; loc++) {
+        console.log("- " + apps_order[loc] + " (" + apps_status[loc] + ")");
+        if (apps_status[loc] == true) {
+            // skip adding the first DOWN command because the selection highlight
+            // starts on the first enabled app after going to the Apps menu
+            if (!skipFirst) {
                 commands.push("DOWN");
+            }
+            else {
+                skipFirst = false;
             }
         }
     }
@@ -1443,54 +1413,36 @@ function buildProviderNavigation(provider, commands) {
     return commands;
 }
 
-// determine if a specified provider is enabled in the configuration file
-function checkProviderEnabled(provider) {
+// determine if a specified app is enabled in the configuration file
+function checkAppEnabled(appID) {
 
-    var provider_loc = video_provider_order.indexOf(provider);
+    var app_loc = apps_order.indexOf(appID);
 
-    if (provider_loc == -1) {
-        console.log("checking status of audio provider (" + provider + ")");
-        provider_loc = audio_provider_order.indexOf(provider);
-        provider_status = audio_provider_status;
-    }
-    else {
-        console.log("checking status of video provider (" + provider + ")");
-        provider_status = video_provider_status; 
-    }
+    console.log("checking status of app (" + appID + ")");
 
-    if (provider_status[provider_loc] == true) {
+    if (apps_status[app_loc] == true) {
         console.log("- enabled");
     } else {
         console.log("- disabled");
     }
 
-    return provider_status[provider_loc];
+    return apps_status[app_loc];
 }
 
-// generate a list of providers and their status (to be spoken and added to help card)
-function createProviderList() {
+// generate a list of apps and their status (to be spoken and added to help card)
+function createAppList() {
 
     speechList = "";
     cardList = "";
 
-    console.log("building list of video providers");
-    for (loc = 0; loc < video_provider_order.length; loc++) {
+    console.log("building list of apps");
+    for (loc = 0; loc < apps_order.length; loc++) {
         statusText = " "
-        if (video_provider_status[loc] == true) {
-            speechList = speechList + ", " + video_provider_order[loc];
+        if (apps_status[loc] == true) {
+            speechList = speechList + ", " + apps_order[loc];
             statusText = " (enabled)"
         }
-        cardList = cardList + "\n- " + video_provider_order[loc] + statusText;
-    }
-
-    console.log("building list of audio providers");
-    for (loc = 0; loc < audio_provider_order.length; loc++) {
-        statusText = " "
-        if (audio_provider_status[loc] == true) {
-            speechList = speechList + ", " + audio_provider_order[loc];
-            statusText = " (enabled)"
-        }
-        cardList = cardList + "\n- " + audio_provider_order[loc] + statusText;
+        cardList = cardList + "\n- " + apps_order[loc] + statusText;
     }
 
     console.log("speech list:\n " + speechList + "\ncard list: " + cardList);
@@ -1582,11 +1534,8 @@ function updateCurrentTiVoConfig(tivoIndex) {
     currentTiVoPort = config.tivos[tivoIndex].port;
     tivoMini = config.tivos[tivoIndex].mini;
 
-    // update video provider status
-    video_provider_status = [config.tivos[tivoIndex].netflix, config.tivos[tivoIndex].amazon, config.tivos[tivoIndex].hbogo, config.tivos[tivoIndex].hulu, config.tivos[tivoIndex].xfinityondemand, config.tivos[tivoIndex].youtube, config.tivos[tivoIndex].epix, config.tivos[tivoIndex].vudu, config.tivos[tivoIndex].plex, config.tivos[tivoIndex].mlbtv, config.tivos[tivoIndex].wwe, config.tivos[tivoIndex].ameba, config.tivos[tivoIndex].toongoggles, config.tivos[tivoIndex].alt, config.tivos[tivoIndex].flixfling, config.tivos[tivoIndex].hsn, config.tivos[tivoIndex].tubi, config.tivos[tivoIndex].vevo, config.tivos[tivoIndex].yahoo, config.tivos[tivoIndex].yupptv, config.tivos[tivoIndex].opera];
- 
-    // update audio provider status
-    audio_provider_status = [config.tivos[tivoIndex].iheartradio, config.tivos[tivoIndex].pandora, config.tivos[tivoIndex].plex_m, config.tivos[tivoIndex].vevo_m];
+    // update apps status
+    apps_status = [config.tivos[tivoIndex].netflix, config.tivos[tivoIndex].amazon, config.tivos[tivoIndex].hbogo, config.tivos[tivoIndex].hulu, config.tivos[tivoIndex].xfinityondemand, config.tivos[tivoIndex].youtube, config.tivos[tivoIndex].epix, config.tivos[tivoIndex].vudu, config.tivos[tivoIndex].plex, config.tivos[tivoIndex].mlbtv, config.tivos[tivoIndex].wwe, config.tivos[tivoIndex].ameba, config.tivos[tivoIndex].toongoggles, config.tivos[tivoIndex].alt, config.tivos[tivoIndex].flixfling, config.tivos[tivoIndex].hsn, config.tivos[tivoIndex].tubi, config.tivos[tivoIndex].vevo, config.tivos[tivoIndex].yahoo, config.tivos[tivoIndex].yupptv, config.tivos[tivoIndex].opera, config.tivos[tivoIndex].iheartradio, config.tivos[tivoIndex].pandora];
 
     console.log("Currently controlling: " + currentTiVoBox + " (" + currentTiVoIP + ")");
 }

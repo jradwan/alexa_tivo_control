@@ -31,7 +31,7 @@ CHANGING CHANNELS
 ... list my channels (by <genre>) (also adds a card to your Alexa app listing your named channels)
 <genre> must be mapped to the proper channel number in your TiVo Control configuration (see channels.json)
 ... list genres
-genres are configured in genres object in constants.json
+genres are configured in the genres string in constants.json
 
 FEATURES
 ... turn on/off captions
@@ -52,9 +52,9 @@ PLACES
 ... go to/show my history
 ... what to watch
 
-PROVIDERS
-... launch/start/open <provider name>
-... list providers (also adds a card to your Alexa app listing all available providers)
+APPS
+... launch/start/open <app name>
+... list apps (also adds a card to your Alexa app listing all available apps)
 
 BOX SELECTION
 ... control/use <box name> (where <box name> matches the name of a TiVo you have set up in the configuration file)
