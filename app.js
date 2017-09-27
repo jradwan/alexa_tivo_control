@@ -284,7 +284,10 @@ app.intent('OnePassManager',
         var commands = [];
         commands.push("TIVO");
         if (hydraUI) {
-            // insert hydra navigation commands here
+            commands.push("NUM0");
+            commands.push("DOWN");
+            commands.push("DOWN");
+            commands.push("SELECT");
         }
         else {
             commands.push("NUM1");
@@ -301,7 +304,9 @@ app.intent('ToDoList',
         var commands = [];
         commands.push("TIVO");
         if (hydraUI) {
-            // insert hydra navigation commands here
+            commands.push("NUM0");
+            commands.push("DOWN");
+            commands.push("SELECT");
         }
         else {
             commands.push("NUM2");
@@ -318,7 +323,14 @@ app.intent('WishLists',
         var commands = [];
         commands.push("TIVO");
         if (hydraUI) {
-            // insert hydra navigation commands here
+            commands.push("NUM3");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("DOWN");
+            commands.push("SELECT");
         }
         else {
             commands.push("NUM3");
@@ -431,7 +443,8 @@ app.intent('Browse',
         var commands = [];
         commands.push("TIVO");
         if (hydraUI) {
-            // insert hydra navigation commands here
+            // Browse has been replaced by What to Watch in the new UI
+            commands.push("NUM2");
         }
         else {
             commands.push("NUM5");
@@ -448,7 +461,11 @@ app.intent('History',
         var commands = [];
         commands.push("TIVO");
         if (hydraUI) {
-            // insert hydra navigation commands here
+            commands.push("NUM0");
+            commands.push("DOWN");
+            commands.push("DOWN");
+            commands.push("DOWN");
+            commands.push("SELECT");
         }
         else {
             commands.push("NUM6");
@@ -746,7 +763,13 @@ app.intent('Record',
     function(request,response) {
         var commands = [];
         commands.push("RECORD");
-        commands.push("RIGHT");
+        if (hydraUI) {
+            commands.push("SELECT");
+            commands.push("SELECT");
+        }
+        else {
+            commands.push("RIGHT");
+        }
         sendCommands(commands);
     });
 
@@ -1355,7 +1378,7 @@ function sendNextCommand () {
     else {
         var command = queuedCommands.shift();
         var timeToWait = 300;
-        if (queuedCommands[0] == "RIGHT" || queuedCommands[0] == "ENTER") {
+        if (queuedCommands[0] == "RIGHT" || queuedCommands[0] == "ENTER" || queuedCommands[0] == "LEFT") {
             // wait slightly longer to allow for screen changes
             if (tivoMini) {
                 timeToWait = 1100;
@@ -1472,12 +1495,22 @@ function addInitCommands(commands) {
 
 // go to Apps menu
 function openAppsCommands(commands) {
-    commands.push("DOWN");
-    commands.push("DOWN");
-    if (tivoMini) {
-        commands.push("DOWN");
+    if (hydraUI) {
+        commands.push("NUM4");
+        commands.push("LEFT");
+        // hack: "pause" a bit to allow screen to update
+        commands.push("MUTE");
+        commands.push("MUTE");
+        commands.push("SELECT");
     }
-    commands.push("RIGHT");
+    else {
+        commands.push("DOWN");
+        commands.push("DOWN");
+        if (tivoMini) {
+            commands.push("DOWN");
+        }
+        commands.push("RIGHT");
+    }
     return commands;
 }
 
@@ -1492,17 +1525,27 @@ function buildAppNavigation(appID, commands) {
     for (loc = 0; loc <= app_loc; loc++) {
         console.log("- " + apps_order[loc] + " (" + apps_status[loc] + ")");
         if (apps_status[loc] == true) {
-            // skip adding the first DOWN command because the selection highlight
+            // skip adding the first command because the selection highlight
             // starts on the first enabled app after going to the Apps menu
             if (!skipFirst) {
-                commands.push("DOWN");
+                if (hydraUI) {
+                    commands.push("RIGHT");
+                }
+                else {
+                    commands.push("DOWN");
+                }
             }
             else {
                 skipFirst = false;
             }
         }
     }
-    commands.push("RIGHT");
+    if (hydraUI) {
+        commands.push("SELECT");
+    }
+    else {
+        commands.push("RIGHT");
+    }
     return commands;
 }
 
