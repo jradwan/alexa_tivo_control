@@ -33,6 +33,7 @@ var channelName = "";
 var tivoBoxRoom = "";
 var roomFound = false;
 var genres = strings["genres"];
+var hydraUI = false;
 
 // macro setup (if enabled)
 var macros = "";
@@ -282,7 +283,15 @@ app.intent('OnePassManager',
     function(request,response) {
         var commands = [];
         commands.push("TIVO");
-        commands.push("NUM1");
+        if (hydraUI) {
+            commands.push("NUM0");
+            commands.push("DOWN");
+            commands.push("DOWN");
+            commands.push("SELECT");
+        }
+        else {
+            commands.push("NUM1");
+        }
         sendCommands(commands);
     });
 
@@ -294,7 +303,14 @@ app.intent('ToDoList',
     function(request,response) {
         var commands = [];
         commands.push("TIVO");
-        commands.push("NUM2");
+        if (hydraUI) {
+            commands.push("NUM0");
+            commands.push("DOWN");
+            commands.push("SELECT");
+        }
+        else {
+            commands.push("NUM2");
+        }
         sendCommands(commands);
     });
 
@@ -306,7 +322,19 @@ app.intent('WishLists',
     function(request,response) {
         var commands = [];
         commands.push("TIVO");
-        commands.push("NUM3");
+        if (hydraUI) {
+            commands.push("NUM3");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("RIGHT");
+            commands.push("DOWN");
+            commands.push("SELECT");
+        }
+        else {
+            commands.push("NUM3");
+        }
         sendCommands(commands);
     });
 
@@ -325,7 +353,12 @@ app.intent('Search',
         console.log(TIVOSEARCHREQMOVIE);
         console.log(TIVOSEARCHREQTVSERIES);
         commands.push("TIVO");
-        commands.push("NUM4");
+        if (hydraUI) {
+            commands.push("NUM3");
+        }
+        else {
+            commands.push("NUM4");
+        }
         if (TIVOSEARCHREQMOVIE != 'UNDEFINED') {
             console.log("Movie Search");
             for (i = 0; i < TIVOSEARCHREQMOVIE.length; i++) {
@@ -409,7 +442,13 @@ app.intent('Browse',
     function(request,response) {
         var commands = [];
         commands.push("TIVO");
-        commands.push("NUM5");
+        if (hydraUI) {
+            // Browse has been replaced by What to Watch in the new UI
+            commands.push("NUM2");
+        }
+        else {
+            commands.push("NUM5");
+        }
         sendCommands(commands);
     });
 
@@ -421,7 +460,16 @@ app.intent('History',
     function(request,response) {
         var commands = [];
         commands.push("TIVO");
-        commands.push("NUM6");
+        if (hydraUI) {
+            commands.push("NUM0");
+            commands.push("DOWN");
+            commands.push("DOWN");
+            commands.push("DOWN");
+            commands.push("SELECT");
+        }
+        else {
+            commands.push("NUM6");
+        }
         sendCommands(commands);
     });
 
@@ -433,11 +481,16 @@ app.intent('WhatToWatch',
     function(request,response) {
         var commands = [];
         commands.push("TIVO");
-        commands.push("DOWN");
-        if (tivoMini) {
-            commands.push("DOWN");
+        if (hydraUI) {
+            commands.push("NUM2");
         }
-        commands.push("RIGHT");
+        else {
+            commands.push("DOWN");
+            if (tivoMini) {
+                commands.push("DOWN");
+            }
+            commands.push("RIGHT");
+        }
         sendCommands(commands);
     });
 
@@ -710,7 +763,13 @@ app.intent('Record',
     function(request,response) {
         var commands = [];
         commands.push("RECORD");
-        commands.push("RIGHT");
+        if (hydraUI) {
+            commands.push("SELECT");
+            commands.push("SELECT");
+        }
+        else {
+            commands.push("RIGHT");
+        }
         sendCommands(commands);
     });
 
@@ -1319,7 +1378,7 @@ function sendNextCommand () {
     else {
         var command = queuedCommands.shift();
         var timeToWait = 300;
-        if (queuedCommands[0] == "RIGHT" || queuedCommands[0] == "ENTER") {
+        if (queuedCommands[0] == "RIGHT" || queuedCommands[0] == "ENTER" || queuedCommands[0] == "LEFT") {
             // wait slightly longer to allow for screen changes
             if (tivoMini) {
                 timeToWait = 1100;
@@ -1436,12 +1495,22 @@ function addInitCommands(commands) {
 
 // go to Apps menu
 function openAppsCommands(commands) {
-    commands.push("DOWN");
-    commands.push("DOWN");
-    if (tivoMini) {
-        commands.push("DOWN");
+    if (hydraUI) {
+        commands.push("NUM4");
+        commands.push("LEFT");
+        // hack: "pause" a bit to allow screen to update
+        commands.push("MUTE");
+        commands.push("MUTE");
+        commands.push("SELECT");
     }
-    commands.push("RIGHT");
+    else {
+        commands.push("DOWN");
+        commands.push("DOWN");
+        if (tivoMini) {
+            commands.push("DOWN");
+        }
+        commands.push("RIGHT");
+    }
     return commands;
 }
 
@@ -1456,17 +1525,27 @@ function buildAppNavigation(appID, commands) {
     for (loc = 0; loc <= app_loc; loc++) {
         console.log("- " + apps_order[loc] + " (" + apps_status[loc] + ")");
         if (apps_status[loc] == true) {
-            // skip adding the first DOWN command because the selection highlight
+            // skip adding the first command because the selection highlight
             // starts on the first enabled app after going to the Apps menu
             if (!skipFirst) {
-                commands.push("DOWN");
+                if (hydraUI) {
+                    commands.push("RIGHT");
+                }
+                else {
+                    commands.push("DOWN");
+                }
             }
             else {
                 skipFirst = false;
             }
         }
     }
-    commands.push("RIGHT");
+    if (hydraUI) {
+        commands.push("SELECT");
+    }
+    else {
+        commands.push("RIGHT");
+    }
     return commands;
 }
 
@@ -1590,6 +1669,7 @@ function updateCurrentTiVoConfig(tivoIndex) {
     currentTiVoIP = config.tivos[tivoIndex].address;
     currentTiVoPort = config.tivos[tivoIndex].port;
     tivoMini = config.tivos[tivoIndex].mini;
+    hydraUI = config.tivos[tivoIndex].hydra;
 
     // update apps status
     apps_status = [config.tivos[tivoIndex].netflix, config.tivos[tivoIndex].amazon, config.tivos[tivoIndex].hbogo, config.tivos[tivoIndex].hulu, config.tivos[tivoIndex].xfinityondemand, config.tivos[tivoIndex].youtube, config.tivos[tivoIndex].epix, config.tivos[tivoIndex].vudu, config.tivos[tivoIndex].plex, config.tivos[tivoIndex].mlbtv, config.tivos[tivoIndex].wwe, config.tivos[tivoIndex].ameba, config.tivos[tivoIndex].toongoggles, config.tivos[tivoIndex].alt, config.tivos[tivoIndex].flixfling, config.tivos[tivoIndex].hsn, config.tivos[tivoIndex].ign, config.tivos[tivoIndex].tastemade, config.tivos[tivoIndex].tubi, config.tivos[tivoIndex].vevo, config.tivos[tivoIndex].yahoo, config.tivos[tivoIndex].yupptv, config.tivos[tivoIndex].opera, config.tivos[tivoIndex].baeble, config.tivos[tivoIndex].iheartradio, config.tivos[tivoIndex].pandora];

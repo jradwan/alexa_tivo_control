@@ -9,6 +9,7 @@
       "address": "<IP address>",
       "port": 31339,
       "mini": false,
+      "hydra": false,
       "netflix": true,
       "amazon": true,
       "hbogo": true,
