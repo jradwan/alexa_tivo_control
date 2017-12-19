@@ -44,6 +44,10 @@ if (config.macros) {
     console.log("User-defined macros enabled (" + totalMacros + " found).");
 }
 
+// language/region setup (us, uk, or ca) 
+var langCd = config.language || "us";
+setRegionalConfig();
+
 // set default TiVo (first one in config file)
 updateCurrentTiVoConfig(tivoIndex);
 
@@ -120,7 +124,7 @@ app.intent('ListEnabledApps',
 
 app.intent('ListChannels',
     {
-        "slots":{"GENRE":"AMAZON.Genre"},
+        "slots":{"GENRE":`${slotGenre}`},
         "utterances":[ "{for|to} {my channels|my channel list|list my channels|list channels|channel list|list channel names} {for +GENRE+|by +GENRE+|}" ]
     },
     function(request,response) {
@@ -188,7 +192,7 @@ app.intent('ListMacros',
 
 app.intent('ChangeTiVoBox',
     {
-       "slots":{"TIVOBOX":"AMAZON.Room"},
+       "slots":{"TIVOBOX":`${slotRoom}`},
         "utterances":[ "{to|} {control|select|switch to|use} {-|TIVOBOX}" ]
     },
     function(request,response) {
@@ -340,7 +344,7 @@ app.intent('WishLists',
 
 app.intent('Search',
     {
-        "slots":{"TIVOSEARCHREQMOVIE":"AMAZON.Movie","TIVOSEARCHREQTVSERIES":"AMAZON.TVSeries"},
+        "slots":{"TIVOSEARCHREQMOVIE":`${slotMovie}`,"TIVOSEARCHREQTVSERIES":`${slotTVSeries}`},
         "utterances":[ "{go to|to|open|open up|display|launch|show|} {search|find} {for +TIVOSEARCHREQMOVIE+|+TIVOSEARCHREQMOVIE+|for +TIVOSEARCHREQTVSERIES+|+TIVOSEARCHREQTVSERIES+|}" ]
     },
     function(request,response) {
@@ -386,7 +390,7 @@ app.intent('Search',
 
 app.intent('Type',
     {
-        "slots":{"TIVOTYPEREQMOVIE":"AMAZON.Movie","TIVOTYPEREQTVSERIES":"AMAZON.TVSeries"},
+        "slots":{"TIVOTYPEREQMOVIE":`${slotMovie}`,"TIVOTYPEREQTVSERIES":`${slotTVSeries}`},
         "utterances":[ "{to|} type {+TIVOTYPEREQMOVIE+|+TIVOTYPEREQTVSERIES+}" ]
     },
     function(request,response) {
@@ -498,7 +502,7 @@ app.intent('WhatToWatch',
 
 app.intent('ChangeChannel',
     {
-        "slots":{"TIVOCHANNEL":"NUMBER","TIVOBOXRM":"AMAZON.Room"},
+        "slots":{"TIVOCHANNEL":"NUMBER","TIVOBOXRM":`${slotRoom}`},
         "utterances":[ "{change|go to} channel {to|} {1-100|TIVOCHANNEL} {in +TIVOBOXRM+|on +TIVOBOXRM+|}" ]
     },
     function(request,response) {
@@ -524,7 +528,7 @@ app.intent('ChangeChannel',
 
 app.intent('PutOn',
     {
-        "slots":{"CHANNELNAME":"AMAZON.TelevisionChannel","TIVOBOXRM":"AMAZON.Room"},
+        "slots":{"CHANNELNAME":`${slotTVChannel}`,"TIVOBOXRM":`${slotRoom}`},
         "utterances":[ "put {on|} {-|CHANNELNAME} {in +TIVOBOXRM+|on +TIVOBOXRM+|}" ]
     },
     function(request,response) {
@@ -569,7 +573,7 @@ app.intent('PutOn',
 	
 app.intent('ForceChannel',
     {
-        "slots":{"TIVOCHANNEL":"NUMBER","TIVOBOXRM":"AMAZON.Room"},
+        "slots":{"TIVOCHANNEL":"NUMBER","TIVOBOXRM":`${slotRoom}`},
         "utterances":[ "force channel {to|} {1-100|TIVOCHANNEL} {in +TIVOBOXRM+|on +TIVOBOXRM+|}" ]
     },
     function(request,response) {
@@ -1783,6 +1787,29 @@ function findMacro(macroName) {
     console.log("Not found!");
     return -1;
 }
+
+// setup for different languages/regions
+function setRegionalConfig() {
+
+    // use custom slot types for non-US languages that don't support the AMAZON ones
+    switch (langCd) {
+        case "uk":
+        case "ca":
+            slotGenre     = "TIVOGENRE_SLOT";
+            slotRoom      = "TIVOROOM_SLOT";
+            slotMovie     = "TIVOMOVIE_SLOT";
+            slotTVSeries  = "TIVOTVSERIES_SLOT";
+            slotTVChannel = "TIVOTVCHANNEL_SLOT";
+            break;
+        case "us":
+        default:
+            slotGenre     = "AMAZON.Genre"
+            slotRoom      = "AMAZON.Room";
+            slotMovie     = "AMAZON.Movie";
+            slotTVSeries  = "AMAZON.TVSeries";
+            slotTVChannel = "AMAZON.TelevisionChannel";
+    }
+} 
 
 
 module.exports = app;

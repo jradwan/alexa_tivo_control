@@ -2,6 +2,7 @@
   "alexaAppId": " ",
   "route": "tivo_control",
   "macros": false,
+  "language": "us",
 
   "tivos": [
     {
