@@ -1,6 +1,6 @@
 {
   "name": "alexa_tivo_control",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Alexa skill providing voice control for one or more TiVo boxes",
   "main": "app.js",
   "private": true,
