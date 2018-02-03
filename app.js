@@ -917,7 +917,7 @@ app.intent('Xfinity',
         }
     });
 
-app.intent('Amazon',
+app.intent('AmazonVideo',
     {
         "slots":{},
         "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} amazon {video|}" ]
