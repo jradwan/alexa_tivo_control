@@ -5,7 +5,7 @@
   "main": "app.js",
   "private": true,
   "dependencies": {
-    "alexa-app": "^4.2.0",
+    "alexa-app": "^4.2.1",
     "ejs": "^2.4.1",
     "telnet-client": "^0.9.1",
     "log-timestamp": "^0.1.2"
