@@ -37,6 +37,7 @@ FEATURES
 ... turn on/off captions
 ... turn on/off/toggle QuickMode
 ... thumbs up/down
+... find my remote
 
 PLACES
 ... go to/show Live TV
