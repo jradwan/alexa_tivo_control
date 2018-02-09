@@ -2,9 +2,8 @@
 This file contains the text for the TiVo Control help card.
 
 Make changes/edits here, where it's easier to read and see formatting. 
-Then, replace all CR/LF with \n (use \n\u22C5\n for a 'blank' line)
-and put the resulting string into the txt_help attribute in the 
-constants.json file.
+Then, replace all CR/LF with \n and put the resulting string into the
+txt_help attribute in the constants.json file.
 ---- REMOVE BETWEEN THESE LINES ----
 
 Welcome to TiVo Control! You can use this skill to voice control your TiVos through Alexa-enabled devices like the Amazon Echo or Dot.
