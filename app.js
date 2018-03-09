@@ -920,7 +920,7 @@ app.intent('Xfinity',
 app.intent('AmazonVideo',
     {
         "slots":{},
-        "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} amazon {video|}" ]
+        "utterances":[ "{go to|open|turn on|open up|display|jump to|launch|} {amazon|prime} {video|}" ]
     },
     function(request,response) {
         if (checkAppEnabled(strings.amazon)) {
