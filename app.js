@@ -81,7 +81,19 @@ var TELEPORT_COMMANDS = ["TIVO", "GUIDE", "NOWPLAYING"];
 
 // custom slots --------------------------------------------------------
 
-app.customSlot("TIVOCOMMAND_SLOT", ["UP", "DOWN", "LEFT", "RIGHT", "SELECT", "TIVO", "THUMBSUP", "THUMBSDOWN", "CHANNELUP", "CHANNELDOWN", "MUTE", "VOLUMEDOWN", "VOLUMEUP", "TVINPUT", "OPTIONS", "RECORD", "DISPLAY", "DIRECTV", "ENTER", "CLEAR", "PLAY", "PAUSE", "SLOW", "FORWARD", "REVERSE", "STANDBY", "NOWSHOWING", "REPLAY", "ADVANCE", "BACK", "WINDOW", "GUIDE", "EXIT", "STOP", "DELIMITER", "KBDUP", "KBDDOWN", "KBDLEFT", "KBDRIGHT", "PAGEUP", "PAGEDOWN", "HOME", "END", "SPACE", "BACKQUOTE", "SLASH", "PERIOD", "COMMA", "QUOTE", "SEMICOLON", "BACKSLASH", "RBRACKET", "LBRACKET", "EQUALS", "MINUS", "CAPS", "LSHIFT", "RSHIFT", "INSERT", "BACKSPACE", "DELETE", "KBDENTER", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "NUM0", "NUM1", "NUM2", "NUM3", "NUM4", "NUM5", "NUM6", "NUM7", "NUM8", "NUM9", "ACTION_A", "ACTION_B", "ACTION_C", "ACTION_D"]);
+app.customSlot("TIVOCOMMAND_SLOT", ["UP", "DOWN", "LEFT", "RIGHT", "SELECT", "TIVO", "THUMBSUP", "THUMBSDOWN", "CHANNELUP", "CHANNELDOWN", "MUTE", "VOLUMEDOWN", "VOLUMEUP", "TVINPUT", "OPTIONS", "RECORD", "DISPLAY", "DIRECTV", "ENTER", "CLEAR", "PLAY", "PAUSE", "SLOW", "FORWARD", "REVERSE", "STANDBY", "NOWSHOWING", "REPLAY", "ADVANCE", "BACK", "WINDOW", "GUIDE", "EXIT", "STOP", "DELIMITER", "KBDUP", "KBDDOWN", "KBDLEFT", "KBDRIGHT", "PAGEUP", "PAGEDOWN", "HOME", "END", "SPACE", "BACKQUOTE", "SLASH", "PERIOD", "COMMA", "QUOTE", "SEMICOLON", "BACKSLASH", "RBRACKET", "LBRACKET", "EQUALS", "MINUS", "CAPS", "LSHIFT", "RSHIFT", "INSERT", "BACKSPACE", "DELETE", "KBDENTER", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "NUM0", "NUM1", "NUM2", "NUM3", "NUM4", "NUM5", "NUM6", "NUM7", "NUM8", "NUM9", "ACTION_A", "ACTION_B", "ACTION_C", "ACTION_D", "NETFLIX", "FIND_REMOTE"]);
+
+app.customSlot("TIVOMACRO_SLOT", ["NO_MACROS"]);
+
+app.customSlot("TIVOGENRE_SLOT", ["LOCALS", "SPORTS", "NEWS", "ENTERTAINMENT", "LIFESTYLE", "KIDZ", "MOVIES", "MUSIC", "ALL", "FAMILY", "RELIGION", "SHOPPING", "SPANISH"]);
+
+app.customSlot("TIVOROOM_SLOT", ["FAMILY ROOM"]);
+
+app.customSlot("TIVOMOVIE_SLOT", ["WARGAMES"]);
+
+app.customSlot("TIVOTVSERIES_SLOT", ["STRANGER THINGS"]);
+
+app.customSlot("TIVOTVCHANNEL_SLOT", ["PBS", "NBC", "FOX", "CBS", "ABC", "ESPN", "TBS", "TNT", "USA"]);
 
 // launch --------------------------------------------------------------
 
